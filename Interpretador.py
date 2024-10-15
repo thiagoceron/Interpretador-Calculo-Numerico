@@ -1,19 +1,33 @@
 import math
 
-def bisseccao(a, b, n, k, precisao, func):
- while abs(b - a) > precisao and k < n:
+# Define a dictionary to map function names to their corresponding mathematical operations
+func_map = {
+    'sen': math.sin,
+    'cos': math.cos,
+    'tg': math.tan,
+    'sec': lambda x: 1 / math.cos(x),
+    'cosec': lambda x: 1 / math.sin(x),
+    'tang': math.tan,
+    'e': math.e,
+    'raiz': lambda x: x ** 0.5,
+    'log': math.log,
+    'ln': math.log
+}
+
+def bisseccao(a, b, n, k, precisao, func, decimal_places):
+    while abs(b - a) > precisao and k < n:
         k += 1
-        x = func(a)
+        x = a
         y = (a + b) / 2
         z = func(y)
-        if x * z < 0:
+        if func(x) * z < 0:
             b = y
         else:
             a = y
         print("Número de iterações:", k)
-        print("Raiz:", y)
+        print("Raiz:", round(y, decimal_places))
 
-def secante(x0, x1, precisao, max_iter, func):
+def secante(x0, x1, precisao, max_iter, func, decimal_places):
     k = 1
     x2 = x1 - func(x1) * (x1 - x0) / (func(x1) - func(x0))
     if abs(func(x0)) < precisao:
@@ -23,46 +37,46 @@ def secante(x0, x1, precisao, max_iter, func):
     while k <= max_iter:
         x2 = x1 - func(x1) * (x1 - x0) / (func(x1) - func(x0))
         if abs(func(x2)) < precisao or abs(x2 - x1) < precisao or k > max_iter:
-            return x2, k
+            return round(x2, decimal_places), k
         x0 = x1
         x1 = x2
         k += 1
-    print("Número máximo de iterações atingido. Última aproximação:", x2)
+    print("Número máximo de iterações atingido. Última aproximação:", round(x2, decimal_places))
     return x2, k
 
-def MIL(x0, precisao, func):
+def MIL(x0, precisao, func, decimal_places):
     raiz = 0
     x = 0
     k = 1
     if abs(func(x0)) < precisao:
         raiz = x0
         print("Número de interações:", k)
-        print("Raiz:", raiz)
+        print("Raiz:", round(raiz, decimal_places))
     else:
         while abs(func(x0)) > precisao and k < 100:
             x = func(x0)
             k += 1
             x0 = x
         print("Número de interações:", k)
-        print("Raiz:", x0)
+        print("Raiz:", round(x0, decimal_places))
 
-def newton(x0, precisao, iteracao_max, func, derivada):
+def newton(x0, precisao, iteracao_max, func, derivada, decimal_places):
     fx = func(x0)
     f_linha = derivada(x0)
     if abs(fx) > precisao:
         iteracao = 0
         while abs(fx) > precisao and iteracao < iteracao_max:
             iteracao += 1
-            x0 = x0 - (fx / f_linha)  # Calcul a a próxima aproximação
+            x0 = x0 - (fx / f_linha)  # Calcula a próxima aproximação
             fx = func(x0)                # Atualiza f(x)
             f_linha = derivada(x0)   # Atualiza f'(x)
-        raiz = x0
+        raiz = round(x0, decimal_places)
     else:
-        raiz = x0
+        raiz = round(x0, decimal_places)
     print("Raiz aproximada:", raiz)
     print("Número de iterações:", iteracao)
 
-def regula_falsi(a, b, delta1, delta2, maxIter, func):
+def regula_falsi(a, b, delta1, delta2, maxIter, func, decimal_places):
     if func(a) * func(b) >= 0:
         print("A condicao f(a) * f(b) < 0 nao eh satisfeita. Saindo.")
         return -1
@@ -70,9 +84,9 @@ def regula_falsi(a, b, delta1, delta2, maxIter, func):
     for iter in range(maxIter):
         M = func(a)
         x = (a * func(b) - b * func(a)) / (func(b) - func(a))
-        print(f"Iteracao {iter + 1}: x = {x}")
+        print(f"Iteracao {iter + 1}: x = {round(x, decimal_places)}")
         if abs((x - x_prev) / x) < delta2:
-            epsilon = x
+            epsilon = round(x, decimal_places)
             print(f"Raiz aproximada encontrada: {epsilon}")
             print(f"Numero total de iteracoes: {iter + 1}")
             return 0
@@ -86,7 +100,12 @@ def regula_falsi(a, b, delta1, delta2, maxIter, func):
 def main():
     print("Digite a função (ex: x**2 - 2):")
     func_str = input()
-    func = eval("lambda x: " + func_str.replace("e", "math.e").replace("cos", "math.cos"))
+    func_name = func_str.split('(')[0].strip()
+    if func_name in func_map:
+        func = lambda x: func_map[func_name](x)
+    else:
+        func = eval("lambda x: " + func_str.replace("e", "math.e").replace("cos", "math.cos"))
+
     print("Escolha o método:")
     print("1. Bisseccao")
     print("2. Secante")
@@ -94,6 +113,7 @@ def main():
     print("4. Newton")
     print("5. Regula Falsi")
     escolha = int(input("Digite a opção: "))
+    decimal_places = int(input("Digite o número de casas decimais: "))
     if escolha == 1:
         a = float(input("Digite o intervalo a: "))
         b = float(input("Digite o intervalo b: "))
@@ -103,33 +123,37 @@ def main():
         if abs(b - a) < precisao:
             print(a)
         else:
-            bisseccao(a, b, n, k, precisao, func)
+            bisseccao(a, b, n, k, precisao, func, decimal_places)
     elif escolha == 2:
         x0 = float(input("Digite x0: "))
         x1 = float(input("Digite x1: "))
         precisao = float(input("Digite a precisão (precisao): "))
         max_iter = int(input("Digite o número máximo de iterações: "))
-        raiz, k = secante(x0, x1, precisao, max_iter, func)
+        raiz, k = secante(x0, x1, precisao, max_iter, func, decimal_places)
         print("Raiz encontrada:", raiz)
         print("Número de iterações:", k)
     elif escolha == 3:
         x0 = float(input("Digite x0: "))
         precisao = float(input("Digite a precisão: "))
-        MIL(x0, precisao, func)
+        MIL(x0, precisao, func, decimal_places)
     elif escolha == 4:
         x0 = float(input("Digite a aproximação inicial x0: "))
         precisao = float(input("Digite a precisão (delta): "))
         iteracao_max = int(input("Digite o número máximo de iterações: "))
         derivada_str = input("Digite a derivada da função (ex: 2*x): ")
+        derivada_str = derivada_str.replace("sen", "math.sin")
+        derivada_str = derivada_str.replace("cos", "math.cos")
+        derivada_str = derivada_str.replace("tg", "math.tan")
+        # ... add more replacements for other functions ...
         derivada = eval("lambda x: " + derivada_str)
-        newton(x0, precisao, iteracao_max, func, derivada)
+        newton(x0, precisao, iteracao_max, func, derivada, decimal_places)
     elif escolha == 5:
         a = float(input("Digite o valor de a: "))
         b = float(input("Digite o valor de b: "))
         delta1 = float(input("Digite a precisao delta1: "))
         delta2 = float(input("Digite a precisao delta2: "))
         maxIter = int(input("Digite o numero maximo de iteracoes: "))
-        regula_falsi(a, b, delta1, delta2, maxIter, func)
+        regula_falsi(a, b, delta1, delta2, maxIter, func, decimal_places)
     else:
         print("Opção inválida. Saindo.")
 
