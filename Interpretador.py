@@ -1,6 +1,6 @@
 import math
 
-# Define a dictionary to map function names to their corresponding mathematical operations
+
 func_map = {
     'sen': math.sin,
     'cos': math.cos,
